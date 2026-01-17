@@ -593,7 +593,7 @@
                 </div>
             </div>
 
-            <div class="subscription-section" style="background: linear-gradient(135deg, #fefae0 0%, #d4e09b 100%); padding: 25px; border-radius: 15px; margin-bottom: 20px; border: 2px solid #2a9d8f;">
+            <div class="subscription-section" id="subscriptionSection" style="background: linear-gradient(135deg, #fefae0 0%, #d4e09b 100%); padding: 25px; border-radius: 15px; margin-bottom: 20px; border: 2px solid #2a9d8f; display: none;">
                 <h3 style="color: #2a9d8f; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
                     <span>🔄</span> Subscription Option
                 </h3>
@@ -670,8 +670,8 @@
                 </div>
             </div>
 
-            <form class="contact-form" id="orderForm">
-                <h3 style="text-align: center; color: #764ba2; margin-bottom: 20px;">Contact Information</h3>
+            <form class="contact-form" id="orderForm" style="display: none;">
+                <h3 style="text-align: center; color: #764ba2; margin-bottom: 20px;">📋 Contact & Delivery Information</h3>
                 
                 <div class="form-group">
                     <label for="name">Full Name *</label>
@@ -693,9 +693,9 @@
                     <input type="text" id="venmo" name="venmo" placeholder="@yourvenmo" required>
                 </div>
 
-                <div class="form-group" id="addressField">
+                <div class="form-group" id="addressField" style="display: none;">
                     <label for="address" id="addressLabel">Shipping Address *</label>
-                    <textarea id="address" name="address" rows="3" required></textarea>
+                    <textarea id="address" name="address" rows="3"></textarea>
                 </div>
 
                 <div class="form-group">
@@ -844,20 +844,35 @@
             document.getElementById(method).closest('.shipping-option').classList.add('selected');
             document.getElementById(method).checked = true;
             
+            // Show contact form once shipping is selected
+            document.getElementById('orderForm').style.display = 'block';
+            
+            // Smooth scroll to contact form
+            setTimeout(() => {
+                document.getElementById('orderForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+            
             // Handle address field based on shipping method
+            const addressFieldContainer = document.getElementById('addressField');
             const addressField = document.getElementById('address');
             const addressLabel = document.getElementById('addressLabel');
             
             if (method === 'pickup') {
-                // Make address optional for pickup
+                // Show address field as optional for pickup notes
+                addressFieldContainer.style.display = 'block';
                 addressField.removeAttribute('required');
                 addressLabel.textContent = 'Pickup Location Notes (Optional)';
                 addressField.placeholder = 'Any special instructions for pickup...';
-            } else {
-                // Make address required for shipping
+            } else if (method === 'ground' || method === 'express') {
+                // Show address field as required for shipping
+                addressFieldContainer.style.display = 'block';
                 addressField.setAttribute('required', 'required');
                 addressLabel.textContent = 'Shipping Address *';
                 addressField.placeholder = 'Street, City, State, ZIP';
+            } else {
+                // Hide address field if no method selected
+                addressFieldContainer.style.display = 'none';
+                addressField.removeAttribute('required');
             }
             
             updateOrderSummary();
@@ -871,10 +886,13 @@
             if (items.length === 0) {
                 container.innerHTML = '';
                 document.getElementById('shippingSection').style.display = 'none';
+                document.getElementById('subscriptionSection').style.display = 'none';
+                document.getElementById('orderForm').style.display = 'none';
                 return;
             }
             
             document.getElementById('shippingSection').style.display = 'block';
+            document.getElementById('subscriptionSection').style.display = 'block';
             
             let subtotal = 0;
             let summaryHTML = '<div class="order-summary"><h3>Order Summary</h3>';
